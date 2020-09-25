@@ -1,7 +1,58 @@
+#ASSIGNMENT 2 SEE SYLLABUS -- https://github.com/Gauntlet173/CodingTheLaw/blob/Fall2020/syllabus.md 
+objects:
+  - user: Individual
+  - cohabs: DAList.using(object_type=Individual)
+---
 mandatory: true
 question: |
-  Hello, ${ name }.
+  Hello, ${ user }!
+subquestion: |
+
+  You live with ${ cohabs }
+  
+  You have been to your Favourite Ice Cream Store: ${ "Yes" if user.been_to_icecream else "No"}
+  
+  You have been to a Good Park: ${ "Yes" if user.been_to_park else "No" }
+  
+  I asked if you understand the meaning of life. You said ${"yes" if user.is_enlightened else "no"}.
+  
+  Your preferred pronoun is ${ user.preferred_pronoun }
+  
+  Your signature ${ user.signature }
 ---
-question: What is your name?
-fields: 
-  - Name: name
+generic object: Individual
+question: | 
+  What is ${ x.object_possessive('name') }?
+fields:
+  - First Name: x.name.first
+  - Last Name: x.name.last
+---
+question: Do you live with anyone?
+yesno: cohabs.there_are_any
+---
+question: Do you live with anyone else?
+yesno: cohabs.there_is_another
+---
+question: |
+   What is your preferred prounoun?
+field: user.preferred_pronoun
+choices:
+  - They
+  - Her
+  - Him
+  - Other
+  - Not Applicable
+---
+question: Please sign
+signature: user.signature
+---
+question: Do you understand the meaning of life?
+yesno: user.is_enlightened
+---
+question: |
+  Tell us where have you been
+fields:
+  - your Favourite Ice Cream Store: user.been_to_icecream
+    datatype: yesnowide
+  - a Good Park: user.been_to_park
+    datatype: yesnowide
