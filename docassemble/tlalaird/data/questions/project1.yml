@@ -1,4 +1,7 @@
-#ASSIGNMENT 2 SEE SYLLABUS -- https://github.com/Gauntlet173/CodingTheLaw/blob/Fall2020/syllabus.md 
+#ASSIGNMENT 3 SEE SYLLABUS -- https://github.com/Gauntlet173/CodingTheLaw/blob/Fall2020/syllabus.md 
+#when you are done go to packages, ensure project1 is still tagged, save again and then "Github" it. On github you go into docassemble-tlalaird/docassemble/tlalaird/data/questions/ to check if it worked. Jason can see your commit message.
+#question and subquestion are more like "title" and body of a page.
+#check out community.lawyer for code to copy. within docassemble documentation check out recipes
 objects:
   - user: Individual
   - cohabs: DAList.using(object_type=Individual)
@@ -6,19 +9,33 @@ objects:
 mandatory: true
 question: |
   Hello, ${ user }!
-subquestion: |
+attachments: 
+  - name: Dudacious Advice Memo.
+    filename: dudacious_document_summary
+    content: |
+      Dudacious Confirmation of Qualification re: Legal Aid.
+      
+      My name is ${ user }.
+      
+      % if len(cohabs) > 0: 
+      I live with ${ cohabs }.
+      
+      % endif
+      
+      ${"To the best of my knowledge, I qualify for legal aid. I understand that this means I may proceed past GO and collect $200" if user.qualifies else "To the best of my knowledge, I do not qualify for legal aid. I undertand that this means I may not proceed past GO and I may not collect $200"}.
+      
+      I have been to my Favourite Ice Cream Store: ${ "Yes" if user.been_to_icecream else "No"}
 
-  You live with ${ cohabs }
-  
-  You have been to your Favourite Ice Cream Store: ${ "Yes" if user.been_to_icecream else "No"}
-  
-  You have been to a Good Park: ${ "Yes" if user.been_to_park else "No" }
-  
-  I asked if you understand the meaning of life. You said ${"yes" if user.is_enlightened else "no"}.
-  
-  Your preferred pronoun is ${ user.preferred_pronoun }
-  
-  Your signature ${ user.signature }
+      I have been to a Good Park: ${ "Yes" if user.been_to_park else "No" }
+
+      I understand the meaning of life: ${"yes" if user.is_enlightened else "no"}.
+     
+      My preferred pronoun is ${ user.preferred_pronoun }
+      
+      My signature ${ user.signature }
+      
+      Signed on ${ format_date(sig_date, format='EEEE, MMMM d, yyyy') } (${ format_date(sig_date, format="yyyy-MM-dd") })).
+      
 ---
 generic object: Individual
 question: | 
@@ -32,6 +49,9 @@ yesno: cohabs.there_are_any
 ---
 question: Do you live with anyone else?
 yesno: cohabs.there_is_another
+---
+question: Do you qualify for legal aid?
+yesno: user.qualifies
 ---
 question: |
    What is your preferred prounoun?
@@ -56,3 +76,9 @@ fields:
     datatype: yesnowide
   - a Good Park: user.been_to_park
     datatype: yesnowide
+---
+question: What is the date of signature?
+fields: 
+  - Signature Date: sig_date
+    datatype: date
+#I realize now this could automatically be filled with today's date rather than asking for it!! Cool.
