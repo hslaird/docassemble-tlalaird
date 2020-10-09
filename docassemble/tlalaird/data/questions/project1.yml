@@ -1,5 +1,6 @@
-#ASSIGNMENT 3 SEE SYLLABUS -- https://github.com/Gauntlet173/CodingTheLaw/blob/Fall2020/syllabus.md 
-#when you are done go to packages, ensure project1 is still tagged, save again and then "Github" it. On github you go into docassemble-tlalaird/docassemble/tlalaird/data/questions/ to check if it worked. Jason can see your commit message.
+#ASSIGNMENT 4 SEE SYLLABUS -- https://github.com/Gauntlet173/CodingTheLaw/blob/Fall2020/syllabus.md 
+#go here if you don't understand TLA 4 - https://docassemble.org/docs/logic.html#howitworks
+#when you are done go to packages, ensure project1 is still tagged, save again and then "Github" it. On github you go into docassemble-tlalaird/docassemble/tlalaird/data/questions/ to check if it worked. 
 #question and subquestion are more like "title" and body of a page.
 #check out community.lawyer for code to copy. within docassemble documentation check out recipes
 objects:
@@ -7,34 +8,75 @@ objects:
   - cohabs: DAList.using(object_type=Individual)
 ---
 mandatory: true
+code: |
+
+  qualifies
+  
+---
+mandatory: true
 question: |
   Hello, ${ user }!
+    
 attachments: 
-  - name: Dudacious Advice Memo.
+  - name: Legal Aid Memo.
     filename: dudacious_document_summary
     content: |
-      Dudacious Confirmation of Qualification re: Legal Aid.
+      Memo re: Qualification for Legal Aid.
+    
       
-      My name is ${ user }.
+      % if qualifies:
+      You qualify for Legal Aid. 
+      % else:
+      You do not qualify for Legal Aid.
+      % endif
       
-      % if len(cohabs) > 0: 
-      I live with ${ cohabs }.
+      % if appeal:
+      Your legal matter is an appeal of a matter for which you received LAA assistance.
+      % else:
+      Your legal matter is not an appeal of a matter for which you received LAA assistance.
+      % endif
+      
+      % if defined('lives_in_AB'):
+      I asked if you live in Alberta. You said ${ lives_in_AB }.
+      % else:
+     
+      % endif
+      
+      % if defined('has_lawyer'):
+      I asked if you have a lawyer. You said ${ has_lawyer }.
+      % else:
+    
+      % endif
+      
+      % if defined('has_acting_lawyer'):
+      I asked if this lawyer is still acting for you. You said ${ has_acting_lawyer }.
+      % else:
       
       % endif
       
-      ${"To the best of my knowledge, I qualify for legal aid. I understand that this means I may proceed past GO and collect $200" if user.qualifies else "To the best of my knowledge, I do not qualify for legal aid. I undertand that this means I may not proceed past GO and I may not collect $200"}.
+      % if defined('can_afford_lawyer'):
+      I asked if you can afford a lawyer. You said ${ can_afford_lawyer }.
+      % else:
       
-      I have been to my Favourite Ice Cream Store: ${ "Yes" if user.been_to_icecream else "No"}
-
-      I have been to a Good Park: ${ "Yes" if user.been_to_park else "No" }
-
-      I understand the meaning of life: ${"yes" if user.is_enlightened else "no"}.
+      % endif
+      
+      % if defined('matter_in_AB'):
+      I asked if your legal matter is in Alberta. You said ${ matter_in_AB }.
+      % else:
+      
+      % endif
+      
+      % if defined('matter_is_family'):
+      I asked if your matter is a family law matter. You said ${ matter_is_family }.
+      % else:
+      
+      % endif
+      
+      % if defined('matter_is_criminal'):
+      I asked if your matter is a criminal law matter. You said ${ matter_is_criminal }.
+      % else:
      
-      My preferred pronoun is ${ user.preferred_pronoun }
-      
-      My signature ${ user.signature }
-      
-      Signed on ${ format_date(sig_date, format='EEEE, MMMM d, yyyy') } (${ format_date(sig_date, format="yyyy-MM-dd") })).
+      % endif
       
 ---
 generic object: Individual
@@ -44,41 +86,52 @@ fields:
   - First Name: x.name.first
   - Last Name: x.name.last
 ---
-question: Do you live with anyone?
-yesno: cohabs.there_are_any
+code: |
+  if appeal or (lives_in_AB and matter_in_AB):
+    resident = True
+  else:
+    resident = False
 ---
-question: Do you live with anyone else?
-yesno: cohabs.there_is_another
+code: |
+  if (has_lawyer and has_acting_lawyer) or can_afford_lawyer:
+    unrepresented = False
+  else:
+    unrepresented = True
+#assuming it is important to ask if you have a lawyer who is not acting for you, whether or not you can afford to hire that lawyer or a different one. 
 ---
-question: Do you qualify for legal aid?
-yesno: user.qualifies
+code: | 
+  if matter_is_criminal or matter_is_family:
+    service_provided = True
+  else:
+    service_provided = False
 ---
-question: |
-   What is your preferred prounoun?
-field: user.preferred_pronoun
-choices:
-  - They
-  - Her
-  - Him
-  - Other
-  - Not Applicable
+code: |
+  if (appeal and unrepresented) or (unrepresented and resident and service_provided): 
+    qualifies = True
+  else:
+    qualifies = False
 ---
-question: Please sign
-signature: user.signature
+question: Do you have a lawyer?
+yesno: has_lawyer
 ---
-question: Do you understand the meaning of life?
-yesno: user.is_enlightened
+question: Can you afford a lawyer?
+yesno: can_afford_lawyer
 ---
-question: |
-  Tell us where have you been
-fields:
-  - your Favourite Ice Cream Store: user.been_to_icecream
-    datatype: yesnowide
-  - a Good Park: user.been_to_park
-    datatype: yesnowide
+question: Is that lawyer still acting for you?
+yesno: has_acting_lawyer
 ---
-question: What is the date of signature?
-fields: 
-  - Signature Date: sig_date
-    datatype: date
-#I realize now this could automatically be filled with today's date rather than asking for it!! Cool.
+question: Is your legal matter located in Alberta?
+yesno: matter_in_AB
+---
+question: Do you live in Alberta?
+yesno: lives_in_AB
+---
+question: Is your legal matter an appeal of a matter for which you received LAA assistance?
+yesno: appeal
+---
+question: Is your legal matter a criminal law matter?
+yesno: matter_is_criminal
+---
+question: Is your legal matter a family law matter?
+yesno: matter_is_family
+#Hi Jason I took out cohabs etc early on, since it wasn't required to generate the document attachment for this assignment, and it was driving me nuts when I was trying to test all the logic flows. I hope that's ok!
