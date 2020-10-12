@@ -1,11 +1,12 @@
-#ASSIGNMENT 4 SEE SYLLABUS -- https://github.com/Gauntlet173/CodingTheLaw/blob/Fall2020/syllabus.md 
+#ASSIGNMENT 5 SEE SYLLABUS -- https://github.com/Gauntlet173/CodingTheLaw/blob/Fall2020/syllabus.md 
 #go here if you don't understand TLA 4 - https://docassemble.org/docs/logic.html#howitworks
 #when you are done go to packages, ensure project1 is still tagged, save again and then "Github" it. On github you go into docassemble-tlalaird/docassemble/tlalaird/data/questions/ to check if it worked. 
 #question and subquestion are more like "title" and body of a page.
 #check out community.lawyer for code to copy. within docassemble documentation check out recipes
 objects:
   - user: Individual
-  - cohabs: DAList.using(object_type=Individual)
+  - cohabs: DAList.using(object_type=Individual, complete_attribute="complete")
+  - cohabs[i].income: Value
 ---
 mandatory: true
 code: |
@@ -23,7 +24,27 @@ attachments:
     content: |
       Memo re: Qualification for Legal Aid.
     
+      Your name is ${ user }.
       
+      % if len(cohabs) > 0: 
+      You said you live with ${ cohabs }.
+      
+      % endif
+  
+      % if j.income.exists:
+      ${ j } made ${ j.income } last year.
+      % endif
+  
+      The total income of cohabs is ${ currency(total_income) }.
+  
+      % if high_total_income:
+      You are financially ineligible for legal aid.
+      %elif medium_total_income:
+      You are marginally financially eligible for legal aid.
+      % else:
+      You are financially eligible for legal aid.
+      % endif
+
       % if qualifies:
       You qualify for Legal Aid. 
       % else:
@@ -78,6 +99,10 @@ attachments:
      
       % endif
       
+      Your signature ${ user.signature }
+      
+      Signed on ${ format_date(sig_date, format='EEEE, MMMM d, yyyy') } (${ format_date(sig_date, format="yyyy-MM-dd") })).
+      
 ---
 generic object: Individual
 question: | 
@@ -85,6 +110,10 @@ question: |
 fields:
   - First Name: x.name.first
   - Last Name: x.name.last
+---
+code: |
+  cohabs[i].income
+  cohabs[i].complete = True
 ---
 code: |
   if appeal or (lives_in_AB and matter_in_AB):
@@ -106,10 +135,36 @@ code: |
     service_provided = False
 ---
 code: |
-  if (appeal and unrepresented) or (unrepresented and resident and service_provided): 
+  if income.exists and (appeal and unrepresented) or (unrepresented and resident and service_provided): 
     qualifies = True
   else:
     qualifies = False
+---
+code: |
+  total_income = 0
+  for j in cohabs: 
+    if j.income.exists:
+      total_income = total_income + j.income.value
+---
+code: |
+  high_total_income = False
+  medium_total_income = False
+  low_total_income = False
+  
+  if total_income > 1000:
+    high_total_income = True
+  elif total_income > 800: 
+    medium_total_income = True 
+  else:
+    low_total_income = True
+---
+question: What else do you know about ${ cohab[i] }?
+fields:
+  - Did they make income in the last year?: cohab[i].income.exists
+    datatype: yesnowide
+  - How much income did they make in the last year?: cohab[i].income.value
+    datatype: currency
+    show if: cohab[i].income.exists
 ---
 question: Do you have a lawyer?
 yesno: has_lawyer
@@ -134,4 +189,17 @@ yesno: matter_is_criminal
 ---
 question: Is your legal matter a family law matter?
 yesno: matter_is_family
-#Hi Jason I took out cohabs etc early on, since it wasn't required to generate the document attachment for this assignment, and it was driving me nuts when I was trying to test all the logic flows. I hope that's ok!
+---
+question: Do you live with anyone?
+yesno: cohabs.there_are_any
+---
+question: Do you live with anyone else?
+yesno: cohabs.there_is_another
+---
+question: Please sign
+signature: user.signature
+---
+question: What is the date of signature?
+fields: 
+  - Signature Date: sig_date
+    datatype: date
