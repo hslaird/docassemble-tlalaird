@@ -29,6 +29,7 @@ attachments:
     content: |
       Memo re: Qualification for Legal Aid.
     
+      
       Your name is ${ user }.
       % if user.assets.exists:
       You indicated that you have assets.
@@ -37,7 +38,7 @@ attachments:
       You made ${ currency(user.annoincome) } last year.
       % endif
       % if user.mensisincome.exists:
-      You made ${ currency(user.mensisincome) } last year.
+      You made ${ currency(user.mensisincome) } last month.
       % endif
       
       % if len(cohabs) > 0: 
@@ -50,15 +51,12 @@ attachments:
       % else: 
       no.
       % endif
-      
       % if j.assets.exists:
       You indicated that ${ j } has assets.
       % endif
-      
       % if j.annoincome.exists:
       ${ j } made ${ currency(j.annoincome.value) } last year.
       % endif
-      
       % if j.mensisincome.exists:
       ${ j } made ${ currency(j.mensisincome.value) } last month.
       % endif
@@ -85,7 +83,7 @@ attachments:
       % if high_total_income:
       You do not financially qualify for Legal Aid. 
       % elif medium_total_income:
-      You may financially qualify for Legal Aid.
+      You marginally financially qualify for Legal Aid.
       % else:
       You appear to financially qualify for Legal Aid.
       % endif
@@ -165,11 +163,12 @@ code: |
     qualifies = False
 ---
 code: |
-  if qualifies and high_total_income:
+  if high_total_income or not qualifies:
    actually_qualifies = False
   else:
    actually_qualifies = True
 ---
+reconsider: true
 code: |
   annobrackets = [20021,24788,35275,38134,40995,43855]
   annobracketstenpercent = [2002.1,2478.8,3527.5,3813.4,3485.5]
