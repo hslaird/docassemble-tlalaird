@@ -5,14 +5,19 @@
 #check out community.lawyer for code to copy. within docassemble documentation check out recipes
 objects:
   - user: Individual
+  - user.annoincome: Value
+  - user.mensisincome: Value
+  - user.assets: Value
   - cohabs: DAList.using(object_type=Individual, complete_attribute="complete")
-  - cohabs[i].income: Value
+  - cohabs[i].annoincome: Value
+  - cohabs[i].mensisincome: Value
+  - cohabs[i].assets: Value
 ---
 mandatory: true
 code: |
 
   qualifies
-  
+
 ---
 mandatory: true
 question: |
@@ -25,30 +30,64 @@ attachments:
       Memo re: Qualification for Legal Aid.
     
       Your name is ${ user }.
+      % if user.assets.exists:
+      You indicated that you have assets.
+      % endif
+      % if user.annoincome.exists:
+      You made ${ currency(user.annoincome) } last year.
+      % endif
+      % if user.mensisincome.exists:
+      You made ${ currency(user.mensisincome) } last year.
+      % endif
       
       % if len(cohabs) > 0: 
-      You said you live with ${ cohabs }.
       
+      % for j in cohabs: 
+      
+      You know about ${ j }. I asked if you share income with ${ j } and you said
+      % if j.cohabs_share: 
+      yes.
+      % else: 
+      no.
       % endif
-  
-      % if j.income.exists:
-      ${ j } made ${ j.income } last year.
+      
+      % if j.assets.exists:
+      You indicated that ${ j } has assets.
       % endif
-  
-      The total income of cohabs is ${ currency(total_income) }.
-  
-      % if high_total_income:
-      You are financially ineligible for legal aid.
-      %elif medium_total_income:
-      You are marginally financially eligible for legal aid.
+      
+      % if j.annoincome.exists:
+      ${ j } made ${ currency(j.annoincome.value) } last year.
+      % endif
+      
+      % if j.mensisincome.exists:
+      ${ j } made ${ currency(j.mensisincome.value) } last month.
+      % endif
+      
+      % endfor
+      
+      For last year, the total income of all of the cohabitants is ${ currency(total_annoincome) }.
+      
+      For last month, the total income of all of the cohabitants is ${ currency(total_mensisincome) }.
+      % endif
+      
+      % if actually_qualifies:
+      It appears that based on the combination of your profile and finances, you qualify for Legal Aid.
       % else:
-      You are financially eligible for legal aid.
+      It appears that based on the combination of your profile and finances, you do not qualify for Legal Aid.
       % endif
-
+  
       % if qualifies:
-      You qualify for Legal Aid. 
+      Based on your profile, you appear to qualify for Legal Aid. 
       % else:
-      You do not qualify for Legal Aid.
+      Based on your profile, you do not qualify for Legal Aid.
+      % endif
+      
+      % if high_total_income:
+      You do not financially qualify for Legal Aid. 
+      % elif medium_total_income:
+      You may financially qualify for Legal Aid.
+      % else:
+      You appear to financially qualify for Legal Aid.
       % endif
       
       % if appeal:
@@ -59,50 +98,35 @@ attachments:
       
       % if defined('lives_in_AB'):
       I asked if you live in Alberta. You said ${ lives_in_AB }.
-      % else:
-     
       % endif
       
       % if defined('has_lawyer'):
       I asked if you have a lawyer. You said ${ has_lawyer }.
-      % else:
-    
       % endif
       
       % if defined('has_acting_lawyer'):
       I asked if this lawyer is still acting for you. You said ${ has_acting_lawyer }.
-      % else:
-      
       % endif
       
       % if defined('can_afford_lawyer'):
       I asked if you can afford a lawyer. You said ${ can_afford_lawyer }.
-      % else:
-      
       % endif
       
       % if defined('matter_in_AB'):
       I asked if your legal matter is in Alberta. You said ${ matter_in_AB }.
-      % else:
-      
       % endif
       
       % if defined('matter_is_family'):
       I asked if your matter is a family law matter. You said ${ matter_is_family }.
-      % else:
-      
       % endif
       
       % if defined('matter_is_criminal'):
       I asked if your matter is a criminal law matter. You said ${ matter_is_criminal }.
-      % else:
-     
       % endif
       
       Your signature ${ user.signature }
       
-      Signed on ${ format_date(sig_date, format='EEEE, MMMM d, yyyy') } (${ format_date(sig_date, format="yyyy-MM-dd") })).
-      
+      Signed on ${ format_date(sig_date, format='EEEE, MMMM d, yyyy') } (${ format_date(sig_date, format="yyyy-MM-dd") })).   
 ---
 generic object: Individual
 question: | 
@@ -112,7 +136,7 @@ fields:
   - Last Name: x.name.last
 ---
 code: |
-  cohabs[i].income
+  cohabs[i].cohabs_share
   cohabs[i].complete = True
 ---
 code: |
@@ -135,36 +159,46 @@ code: |
     service_provided = False
 ---
 code: |
-  if income.exists and (appeal and unrepresented) or (unrepresented and resident and service_provided): 
+  if (appeal and unrepresented) or (unrepresented and resident and service_provided): 
     qualifies = True
   else:
     qualifies = False
 ---
 code: |
-  total_income = 0
-  for j in cohabs: 
-    if j.income.exists:
-      total_income = total_income + j.income.value
+  if qualifies and high_total_income:
+   actually_qualifies = False
+  else:
+   actually_qualifies = True
 ---
 code: |
+  annobrackets = [20021,24788,35275,38134,40995,43855]
+  annobracketstenpercent = [2002.1,2478.8,3527.5,3813.4,3485.5]
+  familysize = len(cohabs) + 1
+  
+  if familysize > 6:
+    familysize = 6
+      
+  max_annoincome = annobrackets[familysize-1] + annobracketstenpercent[familysize-1]
+  set_annoincome = annobrackets[familysize-1]
+  
+  mensisbrackets = [1668,2066,2940,3178,3416,3655]
+  mensisbracketstenpercent = [166.8,206.6,294,317.8,341.6,365.5]
+  familysize = len(cohabs) + 1
+  
+  if familysize > 6:
+    familysize = 6
+    
+  max_mensisincome = mensisbrackets[familysize-1] + mensisbracketstenpercent[familysize-1]
+  set_mensisincome = mensisbrackets[familysize-1]
+  
   high_total_income = False
   medium_total_income = False
-  low_total_income = False
   
-  if total_income > 1000:
+  if (total_annoincome > max_annoincome) or (total_mensisincome > max_mensisincome):
     high_total_income = True
-  elif total_income > 800: 
-    medium_total_income = True 
-  else:
-    low_total_income = True
----
-question: What else do you know about ${ cohab[i] }?
-fields:
-  - Did they make income in the last year?: cohab[i].income.exists
-    datatype: yesnowide
-  - How much income did they make in the last year?: cohab[i].income.value
-    datatype: currency
-    show if: cohab[i].income.exists
+   
+  if (total_annoincome < max_annoincome and total_annoincome >= set_annoincome) and (total_mensisincome < max_mensisincome and total_mensisincome >= set_mensisincome):
+    medium_total_income = True
 ---
 question: Do you have a lawyer?
 yesno: has_lawyer
@@ -190,11 +224,65 @@ yesno: matter_is_criminal
 question: Is your legal matter a family law matter?
 yesno: matter_is_family
 ---
+question: |
+  Tell us about your financial information.
+fields:
+  - Do you have assets?: user.assets.exists
+    datatype: yesnowide
+  - What are your assets?: user.assets.value
+    datatype: currency
+    show if: user.assets.exists
+    
+  - Did you have an income last year?: user.annoincome.exists
+    datatype: yesnowide
+  - What was your income last year?: user.annoincome.value
+    datatype: currency
+    show if: user.annoincome.exists
+    
+  - Did you have income last month?: user.mensisincome.exists
+    datatype: yesnowide
+  - What was your income last month?: user.mensisincome.value
+    datatype: currency
+    show if: user.mensisincome.exists
+---
 question: Do you live with anyone?
 yesno: cohabs.there_are_any
 ---
 question: Do you live with anyone else?
 yesno: cohabs.there_is_another
+---
+question: |
+  What do you know about ${ cohabs[i] }'s finances?
+fields:
+  - Do you share income with this person?: cohabs[i].cohabs_share
+    datatype: yesnowide
+  - Do they have assets?: cohabs[i].assets.exists
+    datatype: yesnowide
+  - What are their assets?: cohabs[i].assets.value
+    datatype: currency
+    show if: cohabs[i].assets.exists
+  - Did they have an income last year?: cohabs[i].annoincome.exists
+    datatype: yesnowide
+  - What was their income last year?: cohabs[i].annoincome.value
+    datatype: currency
+    show if: cohabs[i].annoincome.exists
+  - Did they have income last month?: cohabs[i].mensisincome.exists
+    datatype: yesnowide
+  - What was their income last month?: cohabs[i].mensisincome.value
+    datatype: currency
+    show if: cohabs[i].mensisincome.exists
+---
+code: |
+  total_annoincome = user.annoincome.value
+  for j in cohabs:
+    if j.annoincome.exists:
+      total_annoincome = total_annoincome + j.annoincome.value 
+---
+code: | 
+  total_mensisincome = user.mensisincome.value
+  for j in cohabs:
+    if j.mensisincome.exists:
+      total_mensisincome = total_mensisincome + j.mensisincome.value 
 ---
 question: Please sign
 signature: user.signature
