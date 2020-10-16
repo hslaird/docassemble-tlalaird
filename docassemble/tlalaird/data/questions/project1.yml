@@ -171,23 +171,17 @@ code: |
 reconsider: true
 code: |
   annobrackets = [20021,24788,35275,38134,40995,43855]
-  annobracketstenpercent = [2002.1,2478.8,3527.5,3813.4,3485.5]
   familysize = len(cohabs) + 1
   
   if familysize > 6:
     familysize = 6
       
-  max_annoincome = annobrackets[familysize-1] + annobracketstenpercent[familysize-1]
+  max_annoincome = annobrackets[familysize-1]*1.1
   set_annoincome = annobrackets[familysize-1]
   
   mensisbrackets = [1668,2066,2940,3178,3416,3655]
-  mensisbracketstenpercent = [166.8,206.6,294,317.8,341.6,365.5]
-  familysize = len(cohabs) + 1
-  
-  if familysize > 6:
-    familysize = 6
-    
-  max_mensisincome = mensisbrackets[familysize-1] + mensisbracketstenpercent[familysize-1]
+
+  max_mensisincome = mensisbrackets[familysize-1]*1.1
   set_mensisincome = mensisbrackets[familysize-1]
   
   high_total_income = False
