@@ -45,7 +45,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
 setup(name='docassemble.tlalaird',
       version='0.0.1',
       description=('A docassemble extension.'),
-      long_description='# tlalaird',
+      long_description='# tlalaird for TLA5 I read the logic as marginally income only true if BOTH month and year income above cap but below 1.1 of cap. So if only 1 fits that criteria and the other amount is under the cap, the user is eligible (NOT marginally eligible)\r\n',
       long_description_content_type='text/markdown',
       author='Hero Laird',
       author_email='hslaird@ualberta.ca',

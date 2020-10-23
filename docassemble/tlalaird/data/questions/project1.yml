@@ -141,7 +141,7 @@ attachments:
       % if reviewer_response:
       REVIEWER GAVE YES RESPONSE
       % else:
-      REVIEWER SAID DO NOT PASS GO DO NOT COLLECT LEGAL AID. 
+      ALAS REVIEWER SAID DO NOT PASS GO DO NOT COLLECT LEGAL AID. 
       % endif
 ---
 generic object: Individual
@@ -171,26 +171,20 @@ content: |
 ---
 template: reviewer_notification
 subject: |
-  Greetings Reviewer!
+  LAW589 Assignment 6 Wassup Reviewer!
 content: |
-  This is an e-mail sent from a
-  **docassemble** interview.
-  Have a nice day!
-  Someone made a request, click [HERE](${ interview_url() }) to respond.
-  Your document,is attached BUT IS IT
+  Hello! It's your lucky day, you get to pretend you're a legal aid reviewer. Wowee. Someone FAKE AND NOT REAL made a request, click [HERE](${ interview_url() }) to review the document and respond. Please be nice even though this is all fake. Thanks!
 ---
 event: role_event
 question: You Are Waiting on a Response from another User
 subquestion: |
-  OK, now we wait for the other party!
+  OK, now we wait for the other party to check their email!
   % if 'client' in role_needed:
-  We are waiting for the client, and you are a reviewer. ${ client_email_sent_ok }
+  We are waiting for the client, and you are a reviewer. Was the email to the client sent OK? Result will display here: ${ client_email_sent_ok }
   % elif 'reviewer' in role_needed:
-  We are waiting for the reviewer. ${ email_sent_ok }
+  We are waiting for the reviewer. Was the email to the reviewer sent OK? Result will display here: ${ email_sent_ok }
   % endif
-  
  
-  Please send this link to the other party [HERE](${ interview_url() }) to continue.
 buttons:
   - Click to refresh: refresh
 ---
@@ -201,8 +195,113 @@ fields:
 role: reviewer
 question: Results
 subquestion: |
-  The client asked ${ request }. Please review the attachment and provide your answer. Then tell us!!! What is your answer?
+  The client asked ${ request }. Please review the attachment generated for the client and formulate your answer based on their information. Then tell us!!! What is your answer?
 yesno: reviewer_response  
+attachment:
+  - name: Legal Aid Memo.
+    filename: Memo
+    description: |
+      A Memo! 
+    content: |
+      Memo re: Qualification for Legal Aid.
+    
+      
+      Your name is ${ user }.
+      Your email is ${ client_email }.
+      % if user.assets.exists:
+      You indicated that you have assets.
+      % endif
+      % if user.annoincome.exists:
+      You made ${ currency(user.annoincome) } last year.
+      % endif
+      % if user.mensisincome.exists:
+      You made ${ currency(user.mensisincome) } last month.
+      % endif
+      
+      % if len(cohabs) > 0: 
+      
+      % for j in cohabs: 
+      
+      You know about ${ j }. I asked if you share income with ${ j } and you said
+      % if j.cohabs_share: 
+      yes.
+      % else: 
+      no.
+      % endif
+      % if j.assets.exists:
+      You indicated that ${ j } has assets.
+      % endif
+      % if j.annoincome.exists:
+      ${ j } made ${ currency(j.annoincome.value) } last year.
+      % endif
+      % if j.mensisincome.exists:
+      ${ j } made ${ currency(j.mensisincome.value) } last month.
+      % endif
+      
+      % endfor
+      
+      For last year, the total income of all of the cohabitants is ${ currency(total_annoincome) }.
+      
+      For last month, the total income of all of the cohabitants is ${ currency(total_mensisincome) }.
+      % endif
+      
+      % if actually_qualifies:
+      It appears that based on the combination of your profile and finances, you qualify for Legal Aid.
+      % else:
+      It appears that based on the combination of your profile and finances, you do not qualify for Legal Aid.
+      % endif
+  
+      % if qualifies:
+      Based on your profile, you appear to qualify for Legal Aid. 
+      % else:
+      Based on your profile, you do not qualify for Legal Aid.
+      % endif
+      
+      % if high_total_income:
+      You do not financially qualify for Legal Aid. 
+      % elif medium_total_income:
+      You marginally financially qualify for Legal Aid.
+      % else:
+      You appear to financially qualify for Legal Aid.
+      % endif
+      
+      % if appeal:
+      Your legal matter is an appeal of a matter for which you received LAA assistance.
+      % else:
+      Your legal matter is not an appeal of a matter for which you received LAA assistance.
+      % endif
+      
+      % if defined('lives_in_AB'):
+      I asked if you live in Alberta. You said ${ lives_in_AB }.
+      % endif
+      
+      % if defined('has_lawyer'):
+      I asked if you have a lawyer. You said ${ has_lawyer }.
+      % endif
+      
+      % if defined('has_acting_lawyer'):
+      I asked if this lawyer is still acting for you. You said ${ has_acting_lawyer }.
+      % endif
+      
+      % if defined('can_afford_lawyer'):
+      I asked if you can afford a lawyer. You said ${ can_afford_lawyer }.
+      % endif
+      
+      % if defined('matter_in_AB'):
+      I asked if your legal matter is in Alberta. You said ${ matter_in_AB }.
+      % endif
+      
+      % if defined('matter_is_family'):
+      I asked if your matter is a family law matter. You said ${ matter_is_family }.
+      % endif
+      
+      % if defined('matter_is_criminal'):
+      I asked if your matter is a criminal law matter. You said ${ matter_is_criminal }.
+      % endif
+            
+      Your signature ${ user.signature }
+      
+      Signed on ${ format_date(sig_date, format='EEEE, MMMM d, yyyy') } (${ format_date(sig_date, format="yyyy-MM-dd") })).  
 ---
 role: 
   - client
