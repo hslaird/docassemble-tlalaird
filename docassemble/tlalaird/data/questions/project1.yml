@@ -3,7 +3,6 @@
 #when you are done go to packages, ensure project1 is still tagged, save again and then "Github" it. On github you go into docassemble-tlalaird/docassemble/tlalaird/data/questions/ to check if it worked. 
 #question and subquestion are more like "title" and body of a page.
 #check out community.lawyer for code to copy. within docassemble documentation check out recipes
-#MAKE SURE ATTACHMENT DOES NOT NEED THE RESPONSE FROM THE REVIEWER!!! MAYBE add if reviewer email sent BUT DON'T TRIGGER ITand role is client?? OR MAYBE MAKE A NEW QUESTION BLOCK?
 objects:
   - user: Individual
   - user.annoincome: Value
@@ -17,8 +16,8 @@ objects:
 default role: client
 code: |
   multi_user = True
-  reviewer_email = "hslaird@ualberta.ca"
-  client_email = "laird.heather@gmail.com"
+  reviewer_email = "jmorris@ualberta.ca"
+  client_email = "hslaird@ualberta.ca"
   role = 'client'
   if user_logged_in() and user_info().email == reviewer_email:
     role = 'reviewer'
@@ -150,12 +149,6 @@ question: |
 fields:
   - First Name: x.name.first
   - Last Name: x.name.last
----
-question: |
-  E-mail test
-subquestion: |
-  This interview will send you an e-mail.
-field: intro_provided
 ---
 code: |
   email_sent_ok = send_email(to=reviewer_email, template=reviewer_notification)
@@ -313,11 +306,20 @@ subquestion: |
   
   The reviewer 
   % if reviewer_response:
-  answered
+  gave a positive response.
   % else:
-  did not answer
+  did not give a positive response.
   % endif
-  the question.
+---
+role: 
+  - client
+question: Results
+subquestion: |
+  
+  The reviewer 
+  % if not reviewer_response:
+  rejected your application. 
+  % endif
 ---
 code: |
   cohabs[i].cohabs_share
